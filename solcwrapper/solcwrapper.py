@@ -45,6 +45,12 @@ class SolcWrapper(object):
             version = "*"
         return {path.name.split("-",1)[1]:path for path in self._solc_directory.glob("./solc-%s"%version)}
 
+    def list_sorted(self, version="*"):
+        d = self.list(version=version)
+        keys = list(d.keys())
+        keys.sort(key=lambda s: [int(u) for u in s.split('.')])
+        return [(v,d[v]) for v in reversed(keys)]
+
     def is_available(self, version):
         """
         checks if a given version of solc is already installed
@@ -78,7 +84,6 @@ class SolcWrapper(object):
                     build_root = p_tmp_dir/subdir[0]
 
                     logging.debug(f_tmp.name)
-                    subprocess.run(shell=True, args="ls %s" % build_root)
                     logging.info("compile")
 
                     logging.debug("cmake")
@@ -91,12 +96,11 @@ class SolcWrapper(object):
                     logging.debug(tmp_dir)
                     logging.info("installing binary %s to %s"%(solc_binary, self._solc_directory / ("solc-%s" % version)))
                     shutil.move(src=str(solc_binary), dst=str(self._solc_directory / ("solc-%s" % version)))
-                    logging.info("copied to: %s" % (self._solc_directory / ("solc-%s" % version)))
             elif _type == ESolcType.static_linux:
                 solc_binary = Path(f_tmp.name)
                 logging.info("installing binary %s to %s" % (solc_binary, self._solc_directory / ("solc-%s" % version)))
-                shutil.move(src=str(solc_binary), dst=str(self._solc_directory / ("solc-%s" % version)))
-                logging.info("copied to: %s" % (self._solc_directory / ("solc-%s" % version)))
+                shutil.copy(src=str(solc_binary), dst=str(self._solc_directory / ("solc-%s" % version)))
+                os.chmod(str(self._solc_directory / ("solc-%s" % version)), 0o744)
         logging.info("install completed.")
 
     def uninstall(self, version):
@@ -128,8 +132,7 @@ class SolcWrapper(object):
             path = list(path.values())[0]
         else:
             # take the latest version
-            first = sorted(path.keys())[0]
-            path = path[first]
+            path = self.list_sorted()[0][1]
 
         os.execve(path=str(path), argv=[str(path)] + self._solc_args, env=os.environ.copy())
 
@@ -198,7 +201,15 @@ def main():
     if "--help" in sys.argv:
         usage()
 
-    ms.run(version=ms.args.get("x-version"), _type=ESolcType.source)
+    if ms.args.get("x-from-source"):
+        _type = ESolcType.source
+    elif ms.args.get("x-from-static"):
+        _type = ESolcType.static_linux
+    else:
+        #default
+        _type = ESolcType.source
+
+    ms.run(version=ms.args.get("x-version"), _type=_type)
 
 
 if __name__ == "__main__":
