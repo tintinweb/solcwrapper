@@ -178,7 +178,7 @@ Usage:
     #> python3 -m solcwrapper --x-list
     #> python3 -m solcwrapper --x-list=0.5.0
     #> python3 -m solcwrapper --x-version=0.5.1 <solc options and args>
-    available subommands
+
     %s
 """ % msg
     print(description)
