@@ -22,4 +22,10 @@ Usage:
     #> python3 -m solcwrapper --x-list
     #> python3 -m solcwrapper --x-list=0.5.0
     #> python3 -m solcwrapper --x-version=0.5.1 <solc options and args>
+
+
+(env) ~/w/p/solcwrapper ❯❯❯ python -m solcwrapper --x-version=0.5.1 --version
+solc, the solidity compiler commandline interface
+Version: 0.5.1+commit.c8a2cb62.Darwin.appleclang
+
 ```
